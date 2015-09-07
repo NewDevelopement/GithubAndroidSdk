@@ -7,6 +7,7 @@ import com.alorma.github.basesdk.client.BaseClient;
 import com.alorma.github.sdk.bean.info.PaginationLink;
 import com.alorma.github.sdk.bean.info.RelType;
 
+import com.alorma.github.sdk.security.ApiClientFactory;
 import com.alorma.github.sdk.security.GitHub;
 
 import java.util.HashMap;
@@ -22,7 +23,7 @@ import retrofit.client.Response;
 public abstract class GithubClient<K>  extends BaseClient<K> {
 
 	public GithubClient(Context context) {
-		super(context, new GitHub());
+		super(context, ApiClientFactory.getApiClient(context));
 	}
 
 	@Override

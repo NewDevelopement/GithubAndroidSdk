@@ -13,6 +13,7 @@ public class StoreCredentials {
 	private static final String USER_TOKEN = StoreCredentials.class.getSimpleName() + ".USER_TOKEN";
 	private static final String USER_SCOPES = StoreCredentials.class.getSimpleName() + ".USER_SCOPES";
 	private static final String USER_SCOPES_NO_ASK = StoreCredentials.class.getSimpleName() + ".USER_SCOPES_NO_ASK";
+	private static final String API_HOSTNAME = StoreCredentials.class.getSimpleName() + ".API_HOSTNAME";
 	private final SharedPreferences.Editor editor;
 	private final SharedPreferences preferences;
 
@@ -60,5 +61,14 @@ public class StoreCredentials {
 
 	public String getUserName() {
 		return preferences.getString(USER_NAME, null);
+	}
+
+	public String hostname() {
+		return preferences.getString(API_HOSTNAME, null);
+	}
+
+	public void setApiHostname(String apiHostname) {
+		editor.putString(API_HOSTNAME, apiHostname);
+		editor.apply();
 	}
 }
