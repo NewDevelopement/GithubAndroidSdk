@@ -1,58 +1,39 @@
 package com.alorma.github.sdk.services.user.follow;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.services.client.GithubClient;
 import com.alorma.github.sdk.services.user.UsersService;
-
 import retrofit.RestAdapter;
-import retrofit.RetrofitError;
 import retrofit.client.Response;
+import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Created by Bernat on 27/12/2014.
  */
-public class UnfollowUserClient extends GithubClient<Object> implements GithubClient.OnResultCallback<Object> {
+public class UnfollowUserClient extends GithubClient<Boolean> {
 
-	private OnCheckFollowingUser onCheckFollowingUser;
-	private String username;
+  private String username;
 
-	public UnfollowUserClient(Context context, String username) {
-		super(context);
-		this.username = username;
-		setOnResultCallback(this);
-	}
+  public UnfollowUserClient(String username) {
+    super();
+    this.username = username;
+  }
 
-	@Override
-	protected void executeService(RestAdapter restAdapter) {
-		restAdapter.create(UsersService.class).unfollowUser(username, this);
-	}
+  @Override
+  protected Observable<Boolean> getApiObservable(RestAdapter restAdapter) {
+    return restAdapter.create(UsersService.class)
+        .unfollowUser(username)
+        .map(new Func1<Response, Boolean>() {
+          @Override
+          public Boolean call(Response r) {
+            return !(r != null && r.getStatus() == 204);
+          }
+        });
+  }
 
-	@Override
-	protected Object executeServiceSync(RestAdapter restAdapter) {
-		return restAdapter.create(UsersService.class).unfollowUser(username);
-	}
-
-	@Override
-	public void onResponseOk(Object o, Response r) {
-		if (r != null && r.getStatus() == 204) {
-			if (onCheckFollowingUser != null) {
-				onCheckFollowingUser.onCheckFollowUser(username, false);
-			}
-		}
-	}
-
-	@Override
-	public void onFail(RetrofitError error) {
-		if (error != null && error.getResponse() != null && error.getResponse().getStatus() == 404) {
-			if (onCheckFollowingUser != null) {
-				onCheckFollowingUser.onCheckFollowUser(username, false);
-			}
-		}
-	}
-
-	public void setOnCheckFollowingUser(OnCheckFollowingUser onCheckFollowingUser) {
-		this.onCheckFollowingUser = onCheckFollowingUser;
-	}
-
+  @Override
+  public void intercept(RequestFacade request) {
+    super.intercept(request);
+    request.addHeader("Content-Length", "0");
+  }
 }

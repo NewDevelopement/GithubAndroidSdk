@@ -1,21 +1,19 @@
 package com.alorma.github.sdk.services.login;
 
+import com.alorma.github.sdk.bean.dto.request.CreateAuthorization;
 import com.alorma.github.sdk.bean.dto.request.RequestTokenDTO;
+import com.alorma.github.sdk.bean.dto.response.GithubAuthorization;
 import com.alorma.github.sdk.bean.dto.response.Token;
-
-import retrofit.Callback;
 import retrofit.http.Body;
 import retrofit.http.POST;
+import rx.Observable;
 
-/**
- * Created by Bernat on 13/07/2014.
- */
 public interface LoginService {
 
-    //Async
-    @POST("/login/oauth/access_token")
-    void requestToken(@Body RequestTokenDTO requestTokenDTO, Callback<Token> callback);
+  @POST("/login/oauth/access_token")
+  Observable<Token> requestToken(@Body RequestTokenDTO requestTokenDTO);
 
-    //Sync
-    Token requestToken(@Body RequestTokenDTO requestTokenDTO);
+  @POST("/authorizations")
+  Observable<GithubAuthorization> createAuthorization(
+      @Body CreateAuthorization createAuthorization);
 }

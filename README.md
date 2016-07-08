@@ -1,3 +1,9 @@
+# DEPRECATED
+
+
+
+[![Build Status](https://travis-ci.org/gitskarios/GithubAndroidSdk.svg)](https://travis-ci.org/gitskarios/GithubAndroidSdk)
+
 [ ![Download](https://api.bintray.com/packages/alorma/maven/github-sdk/images/download.svg) ](https://bintray.com/alorma/maven/github-sdk/_latestVersion)
 
 #GithubAndroidSdk
@@ -38,51 +44,84 @@ maven {
 Add dependency in your project `build.gradle`
 
 ``` groovy
-
-
-    compile 'com.github.alorma:github-sdk:1.2.1'
+    compile 'com.github.alorma:github-sdk:3.2.5'
 ```
 
-## FORK
+Or grab it via maven
+``` xml
+<dependency>
+    <groupId>com.github.alorma</groupId>
+    <artifactId>github-sdk</artifactId>
+    <version>3.2.2</version>
+    <type>apklib</type>
+    <scope>compile</scope>
+</dependency>
+<dependency>
+    <groupId>com.github.alorma</groupId>
+    <artifactId>github-sdk</artifactId>
+    <version>3.2.2</version>
+    <type>jar</type>
+    <scope>provided</scope>
+</dependency>
+```
 
-In order to use this sdk, you must enable three metadata keys in your `AndroidManifest.xml`
+## INIT
 
 ```
-<meta-data
-    android:name="com.alorma.github.sdk.client"
-    android:value="@string/gh_client_id"/>
+    TokenProvider.setTokenProviderInstance(new TokenProviderInterface() {
+      @Override
+      public String getToken() {
+        ...
+      }
+    });
 
-<meta-data
-    android:name="com.alorma.github.sdk.secret"
-    android:value="@string/gh_client_secret"/>
+    UrlProvider.setUrlProviderInstance(new UrlProviderInterface() {
+      @Override
+      public String getUrl() {
+        ...
+      }
+    });
 
-<meta-data
-    android:name="com.alorma.github.sdk.oauth"
-    android:value="@string/gh_client_callback"/>
+    UsernameProvider.setUsernameProviderInterface(new UsernameProviderInterface() {
+      @Override
+      public String getUsername() {
+        ...
+      }
+    });
+
+    LogProvider.setTokenProviderInstance(new LogProviderInterface() {
+      @Override
+      public void log(String message) {
+        ...
+      }
+    });
 ```
-
-In Gitskarios, this keys are hidden from repository, so you should create your own string files, or place it directly in `value`
 
 ## EXAMPLE
 
 Get repositories list:
-``` java
+```java
 GithubReposClient client = new UserReposClient(getActivity(), username);
-client.setOnResultCallback(callback);
-client.execute();
+client.observable()
+.observeOn(AndroidSchedulers.mainThread()
+.subscribeOn(Schedulers.io())
+.subscribe( ... );
 ```
 
 Paginated:
-``` Java
+```java
 UserReposClient client = new UserReposClient(getActivity(), username, page);
-client.executeSync();
+client.observable()
+.observeOn(AndroidSchedulers.mainThread()
+.subscribeOn(Schedulers.io())
+.subscribe( ... );
 ```
 
 ##LICENSE
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Bernat Borrás Paronella
+Copyright (c) 2016 Bernat Borrás Paronella
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

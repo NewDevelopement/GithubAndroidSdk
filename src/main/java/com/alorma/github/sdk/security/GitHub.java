@@ -7,25 +7,44 @@ import com.alorma.gitskarios.core.ApiClient;
  */
 public class GitHub implements ApiClient {
 
-    public GitHub() {
-        if (GithubDeveloperCredentials.getInstance().getProvider() == null) {
-            throw new IllegalArgumentException("Credentials provider cannot be null");
-        }
+  private String hostname;
+
+  public GitHub() {
+
+  }
+
+  public GitHub(String hostname) {
+    if (hostname != null) {
+      if (!hostname.startsWith("https://")) {
+        hostname = "https://" + hostname;
+      }
+      this.hostname = hostname;
+    }
+  }
+
+  @Override
+  public String getApiOauthUrlEndpoint() {
+    return hostname == null ? "https://github.com" : hostname;
+  }
+
+  @Override
+  public String getApiEndpoint() {
+    String hostname = "https://api.github.com";
+
+    if (this.hostname != null) {
+      hostname = this.hostname;
+      if (!hostname.endsWith("/")) {
+        hostname = hostname + "/";
+      }
+
+      hostname = hostname + "api/v3/";
     }
 
-    @Override
-    public String getApiOauthUrlEndpoint() {
-        return "https://github.com";
-    }
+    return hostname;
+  }
 
-    @Override
-    public String getApiEndpoint() {
-        return "https://api.github.com";
-    }
-
-    @Override
-    public String getType() {
-        return "github";
-    }
-
+  @Override
+  public String getType() {
+    return "github";
+  }
 }

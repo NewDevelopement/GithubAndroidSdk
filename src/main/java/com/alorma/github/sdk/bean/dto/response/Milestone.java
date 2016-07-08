@@ -2,81 +2,73 @@ package com.alorma.github.sdk.bean.dto.response;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.google.gson.annotations.SerializedName;
+import java.util.Date;
 
-/**
- * Created by Bernat on 22/08/2014.
- */
-public class Milestone extends ShaUrl{
-    public String title;
-    public int number;
-    public MilestoneState state;
-    public String description;
-    public User creator;
+public class Milestone extends ShaUrl implements Comparable<Milestone>, Parcelable {
 
-    @SerializedName("open_issues")
-    public int openIssues;
-    @SerializedName("closes_issues")
-    public int closedIssues;
-    @SerializedName("created_at")
-    public String createdAt;
-    @SerializedName("updated_at")
-    public String updatedAt;
-    @SerializedName("due_on")
-    public String dueOn;
-
-    public Milestone(){
-        super();
+  public static final Creator<Milestone> CREATOR = new Creator<Milestone>() {
+    public Milestone createFromParcel(Parcel source) {
+      return new Milestone(source);
     }
 
-    protected Milestone(Parcel in) {
-        super(in);
-        title = in.readString();
-        number = in.readInt();
-        try {
-            state = MilestoneState.valueOf(in.readString());
-        } catch (IllegalArgumentException x) {
-            state = null;
-        }
-        description = in.readString();
-        creator = in.readParcelable(User.class.getClassLoader());
-        openIssues = in.readInt();
-        closedIssues = in.readInt();
-        createdAt = in.readString();
-        updatedAt = in.readString();
-        dueOn = in.readString();
+    public Milestone[] newArray(int size) {
+      return new Milestone[size];
     }
+  };
+  public String title;
+  public int number;
+  public MilestoneState state;
+  public String description;
+  public User creator;
+  @SerializedName("open_issues") public int openIssues;
+  @SerializedName("closed_issues") public int closedIssues;
+  @SerializedName("created_at") public Date createdAt;
+  @SerializedName("updated_at") public Date updatedAt;
+  @SerializedName("due_on") public String dueOn;
 
-    public static final Creator<Milestone> CREATOR = new Creator<Milestone>() {
-        @Override
-        public Milestone createFromParcel(Parcel in) {
-            return new Milestone(in);
-        }
+  public Milestone() {
+  }
 
-        @Override
-        public Milestone[] newArray(int size) {
-            return new Milestone[size];
-        }
-    };
+  protected Milestone(Parcel in) {
+    super(in);
+    this.title = in.readString();
+    this.number = in.readInt();
+    int tmpState = in.readInt();
+    this.state = tmpState == -1 ? null : MilestoneState.values()[tmpState];
+    this.description = in.readString();
+    this.creator = in.readParcelable(User.class.getClassLoader());
+    this.openIssues = in.readInt();
+    this.closedIssues = in.readInt();
+    long tmpCreated_at = in.readLong();
+    this.createdAt = tmpCreated_at == -1 ? null : new Date(tmpCreated_at);
+    long tmpUpdated_at = in.readLong();
+    this.updatedAt = tmpUpdated_at == -1 ? null : new Date(tmpUpdated_at);
+    this.dueOn = in.readString();
+  }
 
-    @Override
-    public int describeContents() {
-        return super.describeContents();
-    }
+  @Override
+  public int compareTo(Milestone another) {
+    return title.toLowerCase().compareTo(another.title.toLowerCase());
+  }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        super.writeToParcel(dest, flags);
-        dest.writeString(title);
-        dest.writeInt(number);
-        dest.writeString(state != null ? state.toString() : "");
-        dest.writeString(description);
-        dest.writeParcelable(creator, flags);
-        dest.writeInt(openIssues);
-        dest.writeInt(closedIssues);
-        dest.writeString(createdAt);
-        dest.writeString(updatedAt);
-        dest.writeString(dueOn);
-    }
+  @Override
+  public int describeContents() {
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    super.writeToParcel(dest, flags);
+    dest.writeString(this.title);
+    dest.writeInt(this.number);
+    dest.writeInt(this.state == null ? -1 : this.state.ordinal());
+    dest.writeString(this.description);
+    dest.writeParcelable(this.creator, 0);
+    dest.writeInt(this.openIssues);
+    dest.writeInt(this.closedIssues);
+    dest.writeLong(createdAt != null ? createdAt.getTime() : -1);
+    dest.writeLong(updatedAt != null ? updatedAt.getTime() : -1);
+    dest.writeString(this.dueOn);
+  }
 }

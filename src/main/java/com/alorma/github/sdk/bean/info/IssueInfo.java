@@ -1,65 +1,55 @@
 package com.alorma.github.sdk.bean.info;
 
-import android.net.Uri;
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.alorma.github.sdk.bean.dto.response.IssueState;
 
-/**
- * Created by Bernat on 06/09/2014.
- */
 public class IssueInfo implements Parcelable {
 
-    public RepoInfo repoInfo;
-    public int num;
-    public int commentNum;
-    public IssueState state = IssueState.open;
-
-    public IssueInfo() {
-
+  public static final Creator<IssueInfo> CREATOR = new Creator<IssueInfo>() {
+    public IssueInfo createFromParcel(Parcel source) {
+      return new IssueInfo(source);
     }
 
-    public IssueInfo(RepoInfo repoInfo) {
-        this.repoInfo = repoInfo;
+    public IssueInfo[] newArray(int size) {
+      return new IssueInfo[size];
     }
+  };
+  public RepoInfo repoInfo;
+  public int num;
+  public int commentNum;
+  public IssueState state = IssueState.open;
 
-    protected IssueInfo(Parcel in) {
-        repoInfo = in.readParcelable(RepoInfo.class.getClassLoader());
-        num = in.readInt();
-        commentNum = in.readInt();
-        int stateValue = in.readInt();
-        state = IssueState.fromValue(stateValue);
-    }
+  public IssueInfo() {
+  }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
+  public IssueInfo(RepoInfo repoInfo) {
+    this.repoInfo = repoInfo;
+  }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeParcelable(repoInfo, flags);
-        dest.writeInt(num);
-        dest.writeInt(commentNum);
-        dest.writeInt(state.value);
-    }
+  protected IssueInfo(Parcel in) {
+    this.repoInfo = in.readParcelable(RepoInfo.class.getClassLoader());
+    this.num = in.readInt();
+    this.commentNum = in.readInt();
+    int tmpState = in.readInt();
+    this.state = tmpState == -1 ? null : IssueState.values()[tmpState];
+  }
 
-    @SuppressWarnings("unused")
-    public static final Parcelable.Creator<IssueInfo> CREATOR = new Parcelable.Creator<IssueInfo>() {
-        @Override
-        public IssueInfo createFromParcel(Parcel in) {
-            return new IssueInfo(in);
-        }
+  @Override
+  public String toString() {
+    return repoInfo.toString() + "#" + num;
+  }
 
-        @Override
-        public IssueInfo[] newArray(int size) {
-            return new IssueInfo[size];
-        }
-    };
+  @Override
+  public int describeContents() {
+    return 0;
+  }
 
-    @Override
-    public String toString() {
-        return repoInfo.toString() + " #" + num;
-    }
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeParcelable(this.repoInfo, 0);
+    dest.writeInt(this.num);
+    dest.writeInt(this.commentNum);
+    dest.writeInt(this.state == null ? -1 : this.state.ordinal());
+  }
 }

@@ -1,86 +1,71 @@
 package com.alorma.github.sdk.services.issues;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.bean.dto.response.Milestone;
 import com.alorma.github.sdk.bean.dto.response.MilestoneState;
-import com.alorma.github.sdk.bean.info.IssueInfo;
 import com.alorma.github.sdk.bean.info.RepoInfo;
+import com.alorma.github.sdk.services.client.BaseInfiniteCallback;
 import com.alorma.github.sdk.services.client.GithubClient;
-
-import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-
-import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
-import retrofit.converter.Converter;
+import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Created by Bernat on 14/04/2015.
  */
 public class GetMilestonesClient extends GithubClient<List<Milestone>> {
 
-    private RepoInfo repoInfo;
-    private MilestoneState state;
-
-    public GetMilestonesClient(Context context, RepoInfo repoInfo, MilestoneState state) {
-        super(context);
-        this.repoInfo = repoInfo;
-        this.state = state;
-    }
-
+  private RepoInfo repoInfo;
+  private MilestoneState state;
+  private boolean sortAlphabetic = false;
+  private Comparator<? super Milestone> NAME_SORT = new Comparator<Milestone>() {
     @Override
-    protected void executeService(RestAdapter restAdapter) {
-        IssuesService issuesService = restAdapter.create(IssuesService.class);
-        new IssueMilestonesCallback(repoInfo, issuesService).execute();
+    public int compare(Milestone lhs, Milestone rhs) {
+      return lhs.title.compareTo(rhs.title);
     }
+  };
 
-    @Override
-    protected List<Milestone> executeServiceSync(RestAdapter restAdapter) {
-        IssuesService issuesService = restAdapter.create(IssuesService.class);
-        List<Milestone> milestones = new ArrayList<>();
+  public GetMilestonesClient(RepoInfo repoInfo, MilestoneState state) {
+    super();
+    this.repoInfo = repoInfo;
+    this.state = state;
+  }
 
-        milestones.addAll(issuesService.milestones(repoInfo.owner, repoInfo.name, state.name(), 1));
+  public GetMilestonesClient(RepoInfo repoInfo, MilestoneState state, boolean sortAlphabetic) {
+    super();
+    this.repoInfo = repoInfo;
+    this.state = state;
+    this.sortAlphabetic = sortAlphabetic;
+  }
 
-        for (int i = nextPage; i < lastPage; i++)
-            milestones.addAll(issuesService.milestones(repoInfo.owner, repoInfo.name, state.name(), i));
+  @Override
+  protected Observable<List<Milestone>> getApiObservable(final RestAdapter restAdapter) {
+    Observable<List<Milestone>> listObservable =
+        Observable.create(new BaseInfiniteCallback<List<Milestone>>() {
+          @Override
+          public void execute() {
+            IssuesService issuesService = restAdapter.create(IssuesService.class);
+            issuesService.milestones(repoInfo.owner, repoInfo.name, state.name(), this);
+          }
 
-        return milestones;
+          @Override
+          protected void executePaginated(int nextPage) {
+            IssuesService issuesService = restAdapter.create(IssuesService.class);
+            issuesService.milestones(repoInfo.owner, repoInfo.name, state.name(), nextPage, this);
+          }
+        });
+    if (!sortAlphabetic) {
+      return listObservable;
+    } else {
+      return listObservable.map(new Func1<List<Milestone>, List<Milestone>>() {
+        @Override
+        public List<Milestone> call(List<Milestone> milestones) {
+          Collections.sort(milestones, NAME_SORT);
+          return milestones;
+        }
+      });
     }
-
-    private class IssueMilestonesCallback extends BaseInfiniteCallback<List<Milestone>> {
-
-        private List<Milestone> milestones;
-        private RepoInfo repoInfo;
-        private IssuesService service;
-
-        public IssueMilestonesCallback(RepoInfo repoInfo, IssuesService service) {
-            this.repoInfo = repoInfo;
-            this.service = service;
-            milestones = new ArrayList<>();
-        }
-
-        @Override
-        public void execute() {
-            service.milestones(repoInfo.owner, repoInfo.name, state.name(), this);
-        }
-
-        @Override
-        protected void executePaginated(int nextPage) {
-            service.milestones(repoInfo.owner, repoInfo.name, state.name(), nextPage, this);
-        }
-
-        @Override
-        protected void executeNext() {
-            if (getOnResultCallback() != null) {
-                getOnResultCallback().onResponseOk(milestones, null);
-            }
-        }
-
-        @Override
-        protected void response(List<Milestone> milestones) {
-            this.milestones.addAll(milestones);
-        }
-    }
-
+  }
 }

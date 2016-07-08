@@ -1,47 +1,48 @@
 package com.alorma.github.sdk.services.issues;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.bean.dto.response.GithubComment;
 import com.alorma.github.sdk.bean.info.IssueInfo;
-
+import com.alorma.github.sdk.services.client.GithubListClient;
 import java.util.List;
+import retrofit.RestAdapter;
 
 /**
  * Created by Bernat on 23/08/2014.
  */
-public class GetIssueComments extends GithubIssuesClient<List<GithubComment>> {
+public class GetIssueComments extends GithubListClient<List<GithubComment>> {
 
-	public GetIssueComments(Context context, IssueInfo issueInfo, int page) {
-		super(context, issueInfo, page);
-	}
+  private IssueInfo issueInfo;
+  private int page;
 
-	public GetIssueComments(Context context, IssueInfo issueInfo) {
-		super(context, issueInfo);
-	}
+  public GetIssueComments(IssueInfo issueInfo) {
+    this(issueInfo, 0);
+  }
 
-	@Override
-	protected void executeFirstPage(IssueInfo issueInfo, IssuesService issuesService) {
-		issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num, this);
-	}
+  public GetIssueComments(IssueInfo issueInfo, int page) {
+    super();
+    this.issueInfo = issueInfo;
+    this.page = page;
+  }
 
-	@Override
-	protected void executePaginated(IssueInfo issueInfo, int page, IssuesService issuesService) {
-		issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num, page, this);
-	}
+  @Override
+  public String getAcceptHeader() {
+    return "application/vnd.github.v3.html+json";
+  }
 
-	@Override
-	protected List<GithubComment> executeFirstPageSync(IssueInfo issueInfo, IssuesService issuesService) {
-		return issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num);
-	}
-
-	@Override
-	protected List<GithubComment> executePaginatedSync(IssueInfo issueInfo, int page, IssuesService issuesService) {
-		return issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num, page);
-	}
-
-	@Override
-	public String getAcceptHeader() {
-		return "application/vnd.github.v3.html+json";
-	}
+  @Override
+  protected ApiSubscriber getApiObservable(RestAdapter restAdapter) {
+    return new ApiSubscriber() {
+      @Override
+      protected void call(RestAdapter restAdapter) {
+        IssuesService issuesService = restAdapter.create(IssuesService.class);
+        if (page == 0) {
+          issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num,
+              this);
+        } else {
+          issuesService.comments(issueInfo.repoInfo.owner, issueInfo.repoInfo.name, issueInfo.num,
+              page, this);
+        }
+      }
+    };
+  }
 }

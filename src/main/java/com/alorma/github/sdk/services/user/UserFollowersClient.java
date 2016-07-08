@@ -1,61 +1,49 @@
 package com.alorma.github.sdk.services.user;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.bean.dto.response.User;
-
+import com.alorma.github.sdk.services.client.GithubListClient;
 import java.util.List;
+import retrofit.RestAdapter;
 
 /**
  * Created by Bernat on 14/07/2014.
  */
-public class UserFollowersClient extends GithubUsersClient<List<User>> {
+public class UserFollowersClient extends GithubListClient<List<User>> {
 
-    private String username;
-    private int page = 0;
+  private String username;
+  private int page = 0;
 
-    public UserFollowersClient(Context context, String username) {
-        super(context);
-        this.username = username;
-    }
+  public UserFollowersClient(String username) {
+    super();
+    this.username = username;
+  }
 
-    public UserFollowersClient(Context context, String username, int page) {
-        super(context);
-        this.username = username;
-        this.page = page;
-    }
+  public UserFollowersClient(String username, int page) {
+    super();
+    this.username = username;
+    this.page = page;
+  }
 
-    @Override
-    protected void executeService(UsersService usersService) {
+  @Override
+  protected ApiSubscriber getApiObservable(RestAdapter restAdapter) {
+    return new ApiSubscriber() {
+      @Override
+      protected void call(RestAdapter restAdapter) {
+        UsersService usersService = restAdapter.create(UsersService.class);
         if (page == 0) {
-            if (username == null) {
-                usersService.followers(this);
-            } else {
-                usersService.followers(username, this);
-            }
+          if (username == null) {
+            usersService.followers(this);
+          } else {
+            usersService.followers(username, this);
+          }
         } else {
-            if (username == null) {
-                usersService.followers(page, this);
-            } else {
-                usersService.followers(username, page, this);
-            }
+          if (username == null) {
+            usersService.followers(page, this);
+          } else {
+            usersService.followers(username, page, this);
+          }
         }
-    }
-
-    @Override
-    protected List<User> executeServiceSync(UsersService usersService) {
-        if (page == 0) {
-            if (username == null) {
-                return usersService.followers();
-            } else {
-                return usersService.followers(username);
-            }
-        } else {
-            if (username == null) {
-                return usersService.followers(page);
-            } else {
-                return usersService.followers(username, page);
-            }
-        }
-    }
+      }
+    };
+  }
 }

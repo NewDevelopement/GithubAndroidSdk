@@ -2,63 +2,53 @@ package com.alorma.github.sdk.bean.dto.response;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-
 import com.google.gson.annotations.SerializedName;
 
-public class GistFile implements Parcelable{
+public class GistFile implements Parcelable {
 
-	public int size;
+  public static final Parcelable.Creator<GistFile> CREATOR = new Parcelable.Creator<GistFile>() {
+    public GistFile createFromParcel(Parcel source) {
+      return new GistFile(source);
+    }
 
-	public String content;
+    public GistFile[] newArray(int size) {
+      return new GistFile[size];
+    }
+  };
+  public int size;
+  public String content;
+  public String type;
+  public String filename;
+  @SerializedName("raw_url") public String rawUrl;
+  public boolean truncated;
+  public String language;
 
-	public String type;
+  public GistFile() {
+  }
 
-	public String filename;
+  protected GistFile(Parcel in) {
+    this.size = in.readInt();
+    this.content = in.readString();
+    this.type = in.readString();
+    this.filename = in.readString();
+    this.rawUrl = in.readString();
+    this.truncated = in.readByte() != 0;
+    this.language = in.readString();
+  }
 
-	@SerializedName("raw_url")
-	public String rawUrl;
-	
-	public boolean truncated;
-	
-	public String language;
+  @Override
+  public int describeContents() {
+    return 0;
+  }
 
-	public GistFile(){
-
-	}
-
-	protected GistFile(Parcel in) {
-		size = in.readInt();
-		content = in.readString();
-		type = in.readString();
-		filename = in.readString();
-		rawUrl = in.readString();
-		language = in.readString();
-	}
-
-	public static final Creator<GistFile> CREATOR = new Creator<GistFile>() {
-		@Override
-		public GistFile createFromParcel(Parcel in) {
-			return new GistFile(in);
-		}
-
-		@Override
-		public GistFile[] newArray(int size) {
-			return new GistFile[size];
-		}
-	};
-
-	@Override
-	public int describeContents() {
-		return 0;
-	}
-
-	@Override
-	public void writeToParcel(Parcel dest, int flags) {
-		dest.writeInt(size);
-		dest.writeString(content);
-		dest.writeString(type);
-		dest.writeString(filename);
-		dest.writeString(rawUrl);
-		dest.writeString(language);
-	}
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeInt(this.size);
+    dest.writeString(this.content);
+    dest.writeString(this.type);
+    dest.writeString(this.filename);
+    dest.writeString(this.rawUrl);
+    dest.writeByte(truncated ? (byte) 1 : (byte) 0);
+    dest.writeString(this.language);
+  }
 }

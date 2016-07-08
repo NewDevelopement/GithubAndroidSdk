@@ -1,28 +1,41 @@
 package com.alorma.github.sdk.services.repo;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.bean.dto.response.Branch;
 import com.alorma.github.sdk.bean.info.RepoInfo;
-
+import com.alorma.github.sdk.services.client.BaseInfiniteCallback;
+import com.alorma.github.sdk.services.client.GithubClient;
+import java.util.ArrayList;
 import java.util.List;
+import retrofit.RestAdapter;
+import rx.Observable;
 
-/**
- * Created by Bernat on 20/07/2014.
- */
-public class GetRepoBranchesClient extends GithubRepoClient<List<Branch>> {
+public class GetRepoBranchesClient extends GithubClient<List<Branch>> {
 
-	public GetRepoBranchesClient(Context context, RepoInfo repoInfo) {
-		super(context, repoInfo);
-	}
+  private RepoInfo repoInfo;
 
-	@Override
-	protected void executeService(RepoService repoService) {
-		repoService.branches(getOwner(), getRepo(), this);
-	}
+  public GetRepoBranchesClient(RepoInfo repoInfo) {
+    this.repoInfo = repoInfo;
+  }
 
-	@Override
-	protected List<Branch> executeServiceSync(RepoService repoService) {
-		return repoService.branches(getOwner(), getRepo());
-	}
+  @Override
+  protected Observable<List<Branch>> getApiObservable(RestAdapter restAdapter) {
+    return Observable.create(new BaseInfiniteCallback<List<Branch>>() {
+      @Override
+      public void execute() {
+        restAdapter.create(RepoService.class).branches(repoInfo.owner, repoInfo.name, this);
+      }
+
+      @Override
+      protected void executePaginated(int nextPage) {
+        restAdapter.create(RepoService.class)
+            .branches(repoInfo.owner, repoInfo.name, nextPage, this);
+      }
+    }).startWith(new ArrayList<Branch>()).reduce((accumulated, branches2) -> {
+      if (accumulated == null) {
+        accumulated = new ArrayList<>();
+      }
+      accumulated.addAll(branches2);
+      return accumulated;
+    });
+  }
 }

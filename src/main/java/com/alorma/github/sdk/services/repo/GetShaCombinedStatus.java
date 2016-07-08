@@ -1,43 +1,50 @@
 package com.alorma.github.sdk.services.repo;
 
-import android.content.Context;
-
 import com.alorma.github.sdk.bean.dto.response.GithubStatusResponse;
 import com.alorma.github.sdk.bean.info.RepoInfo;
+import com.alorma.github.sdk.services.client.GithubListClient;
+import retrofit.RestAdapter;
 
 /**
  * Created by a557114 on 06/09/2015.
  */
-public class GetShaCombinedStatus extends GithubRepoClient<GithubStatusResponse> {
+public class GetShaCombinedStatus extends GithubListClient<GithubStatusResponse> {
 
-    private String ref;
-    private int page;
+  private final RepoInfo repoInfo;
+  private String ref;
+  private int page;
 
-    public GetShaCombinedStatus(Context context, RepoInfo repoInfo, String ref) {
-        this(context, repoInfo, ref, 0);
-    }
+  public GetShaCombinedStatus(RepoInfo repoInfo, String ref) {
+    this(repoInfo, ref, 0);
+  }
 
-    public GetShaCombinedStatus(Context context, RepoInfo repoInfo, String ref, int page) {
-        super(context, repoInfo);
-        this.ref = ref;
-        this.page = page;
-    }
+  public GetShaCombinedStatus(RepoInfo repoInfo, String ref, int page) {
+    super();
+    this.repoInfo = repoInfo;
+    this.ref = ref;
+    this.page = page;
+  }
 
-    @Override
-    protected void executeService(RepoService repoService) {
+  @Override
+  protected ApiSubscriber getApiObservable(RestAdapter restAdapter) {
+    return new ApiSubscriber() {
+      @Override
+      protected void call(RestAdapter restAdapter) {
+        RepoService repoService = restAdapter.create(RepoService.class);
         if (page == 0) {
-            repoService.combinedStatus(getOwner(), getRepo(), ref, this);
+          repoService.combinedStatusASync(getOwner(), getRepo(), ref, this);
         } else {
-            repoService.combinedStatus(getOwner(), getRepo(), ref, page, this);
+          repoService.combinedStatusASync(getOwner(), getRepo(), ref, page, this);
         }
-    }
+      }
+    };
+  }
 
-    @Override
-    protected GithubStatusResponse executeServiceSync(RepoService repoService) {
-        if (page == 0) {
-            return repoService.combinedStatus(getOwner(), getRepo(), ref);
-        } else {
-            return repoService.combinedStatus(getOwner(), getRepo(), ref, page);
-        }
-    }
+  private String getOwner() {
+    return repoInfo.owner;
+  }
+
+  private String getRepo() {
+    return repoInfo.name;
+  }
 }

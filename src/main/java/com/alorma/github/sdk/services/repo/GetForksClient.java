@@ -1,60 +1,67 @@
 package com.alorma.github.sdk.services.repo;
 
-import android.content.Context;
-import android.support.annotation.StringDef;
-
 import com.alorma.github.sdk.bean.dto.response.Repo;
 import com.alorma.github.sdk.bean.info.RepoInfo;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import com.alorma.github.sdk.services.client.GithubListClient;
 import java.util.List;
+import retrofit.RestAdapter;
 
 /**
  * Created by a557114 on 05/09/2015.
  */
-public class GetForksClient extends GithubRepoClient<List<Repo>> {
+public class GetForksClient extends GithubListClient<List<Repo>> {
 
-    private final int page;
-    private String sort = null;
+  public static final SortType NEWEST = SortType.NEWEST;
+  public static final SortType OLDEST = SortType.OLDEST;
+  public static final SortType STARGAZERS = SortType.STARGAZERS;
+  private final RepoInfo repoInfo;
+  private final int page;
+  // newest, oldest, stargazers
+  private SortType sort = null;
 
-    public GetForksClient(Context context, RepoInfo repoInfo) {
-        this(context, repoInfo, 0);
-    }
-    public GetForksClient(Context context, RepoInfo repoInfo, int page) {
-        super(context, repoInfo);
-        this.page = page;
-    }
+  public GetForksClient(RepoInfo repoInfo) {
+    this(repoInfo, 0);
+  }
 
-    @Override
-    protected void executeService(RepoService repoService) {
+  public GetForksClient(RepoInfo repoInfo, int page) {
+    super();
+    this.repoInfo = repoInfo;
+    this.page = page;
+  }
+
+  @Override
+  protected ApiSubscriber getApiObservable(RestAdapter restAdapter) {
+    return new ApiSubscriber() {
+      @Override
+      protected void call(RestAdapter restAdapter) {
+        RepoService repoService = restAdapter.create(RepoService.class);
         if (page == 0) {
-            repoService.listForks(getOwner(), getRepo(),sort, this);
+          repoService.listForks(repoInfo.owner, repoInfo.name, sort.getType(), this);
         } else {
-            repoService.listForks(getOwner(), getRepo(), sort, 0, this);
+          repoService.listForks(repoInfo.owner, repoInfo.name, sort.getType(), page, this);
         }
+      }
+    };
+  }
+
+  public void setSort(SortType sort) {
+    this.sort = sort;
+  }
+
+  public enum SortType {
+    NEWEST("newest"),
+    OLDEST("oldest"),
+    STARGAZERS("stargazers");
+
+    private String type;
+
+    SortType(String type) {
+
+      this.type = type;
     }
 
-    @Override
-    protected List<Repo> executeServiceSync(RepoService repoService) {
-        if (page == 0) {
-            return repoService.listForks(getOwner(), getRepo(), sort);
-        } else {
-            return repoService.listForks(getOwner(), getRepo(), sort, 0);
-        }
+    public String getType() {
+      return type;
     }
-
-    // newest, oldest, stargazers
-
-    public static final String NEWEST = "newest";
-    public static final String OLDEST = "oldest";
-    public static final String STARGAZERS = "stargazers";
-
-    @StringDef({NEWEST, OLDEST, STARGAZERS})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface SORT{}
-
-    public void setSort(@SORT String sort) {
-        this.sort = sort;
-    }
+  }
 }

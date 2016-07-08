@@ -1,51 +1,47 @@
 package com.alorma.github.sdk.bean.dto.response;
 
 import android.os.Parcel;
-
+import android.os.Parcelable;
 import com.google.gson.annotations.SerializedName;
 
-public class GollumPage extends ShaUrl{
+public class GollumPage extends ShaUrl implements Parcelable {
 
-    @SerializedName("page_name")
-    public String name;
-
-    public String title;
-
-    public String summary;
-
-    public String action;
-
-    public GollumPage() {
-
+  public static final Creator<GollumPage> CREATOR = new Creator<GollumPage>() {
+    public GollumPage createFromParcel(Parcel source) {
+      return new GollumPage(source);
     }
 
-    protected GollumPage(Parcel in) {
-        super(in);
-        name = in.readString();
-        title = in.readString();
-        summary = in.readString();
-        action = in.readString();
+    public GollumPage[] newArray(int size) {
+      return new GollumPage[size];
     }
+  };
+  @SerializedName("page_name") public String name;
+  public String title;
+  public String summary;
+  public String action;
 
-    public static final Creator<GollumPage> CREATOR = new Creator<GollumPage>() {
-        @Override
-        public GollumPage createFromParcel(Parcel in) {
-            return new GollumPage(in);
-        }
+  public GollumPage() {
+  }
 
-        @Override
-        public GollumPage[] newArray(int size) {
-            return new GollumPage[size];
-        }
-    };
+  protected GollumPage(Parcel in) {
+    super(in);
+    this.name = in.readString();
+    this.title = in.readString();
+    this.summary = in.readString();
+    this.action = in.readString();
+  }
 
+  @Override
+  public int describeContents() {
+    return 0;
+  }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        super.writeToParcel(dest, flags);
-        dest.writeString(name);
-        dest.writeString(title);
-        dest.writeString(summary);
-        dest.writeString(action);
-    }
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    super.writeToParcel(dest, flags);
+    dest.writeString(this.name);
+    dest.writeString(this.title);
+    dest.writeString(this.summary);
+    dest.writeString(this.action);
+  }
 }

@@ -1,49 +1,44 @@
 package com.alorma.github.sdk.services.content;
 
-import com.alorma.github.sdk.bean.dto.request.RequestMarkdownDTO;
+import com.alorma.github.sdk.bean.dto.request.NewContentRequest;
 import com.alorma.github.sdk.bean.dto.response.Content;
-
-import retrofit.Callback;
+import com.alorma.github.sdk.bean.dto.response.NewContentResponse;
 import retrofit.http.Body;
+import retrofit.http.DELETE;
 import retrofit.http.GET;
 import retrofit.http.POST;
+import retrofit.http.PUT;
 import retrofit.http.Path;
 import retrofit.http.Query;
+import rx.Observable;
 
-/**
- * Created by Bernat on 22/07/2014.
- */
 public interface ContentService {
 
-    //Async
-    @POST("/markdown/raw")
-    void markdown(@Body String readme, Callback<String> callback);
+  //Sync
+  @POST("/markdown/raw")
+  Observable<String> markdown(@Body String readme);
 
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    void fileContent(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path, Callback<Content> callback);
+  @GET("/repos/{owner}/{name}/contents/{path}")
+  Observable<Content> fileContent(@Path("owner") String owner, @Path("name") String repo,
+      @Path(value = "path", encode = false) String path);
 
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    void fileContentSha(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path, @Query("sha") String sha, Callback<Content> callback);
+  @GET("/repos/{owner}/{name}/contents/{path}")
+  Observable<Content> fileContentSha(@Path("owner") String owner, @Path("name") String repo,
+      @Path(value = "path", encode = false) String path, @Query("sha") String sha);
 
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    void fileContentRef(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path, @Query("ref") String ref, Callback<Content> callback);
+  @GET("/repos/{owner}/{name}/contents/{path}")
+  Observable<Content> fileContentRef(@Path("owner") String owner, @Path("name") String repo,
+      @Path(value = "path", encode = false) String path, @Query("ref") String ref);
 
-    @GET("/repos/{owner}/{name}/{file_type}/{path}")
-    void archiveLink(@Path("owner") String owner, @Path("name") String repo, @Path("file_type") String file_type, @Path(value="path", encode = false) String path, Callback<Object> callback);
+  @GET("/repos/{owner}/{name}/{file_type}/{path}")
+  Observable<Object> archiveLink(@Path("owner") String owner, @Path("name") String repo, @Path("file_type") String file_type,
+      @Path(value = "path", encode = false) String path);
 
-    //Sync
-    @POST("/markdown/raw")
-    String markdown(@Body String readme);
+  @PUT("/repos/{owner}/{repo}/contents/{path}")
+  Observable<NewContentResponse> createFile(@Path("owner") String owner, @Path("repo") String repo, @Path("path") String path,
+      @Body NewContentRequest body);
 
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    Content fileContent(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path);
-
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    Content fileContentSha(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path, @Query("sha") String sha);
-
-    @GET("/repos/{owner}/{name}/contents/{path}")
-    Content fileContentRef(@Path("owner") String owner, @Path("name") String repo, @Path(value="path", encode = false) String path, @Query("ref") String ref);
-
-    @GET("/repos/{owner}/{name}/{file_type}/{path}")
-    Object archiveLink(@Path("owner") String owner, @Path("name") String repo, @Path("file_type") String file_type, @Path(value="path", encode = false) String path);
+  @DELETE("/repos/{owner}/{repo}/contents/{path}")
+  Observable<NewContentResponse> deleteFile(@Path("owner") String owner, @Path("repo") String repo, @Path("path") String path,
+      @Body NewContentRequest body);
 }
